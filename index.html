@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Resonancia: EDO, Heun, RK4 y musicoterapia asistida</title>
+<style>
+:root{--bg:#fafaf7;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--bd:#dcdcd4;--ac:#2f5d8a;--c2:#c2571a;--c3:#2f7d4f;--warn:#fff4e0;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16171a;--fg:#ecece8;--mut:#9a9a94;--card:#1f2024;--bd:#34353a;--ac:#7fb0e0;--c2:#f08a4b;--c3:#5fc28a;--warn:#2e2618}}
+:root[data-theme="dark"]{--bg:#16171a;--fg:#ecece8;--mut:#9a9a94;--card:#1f2024;--bd:#34353a;--ac:#7fb0e0;--c2:#f08a4b;--c3:#5fc28a;--warn:#2e2618}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.1rem;margin:0 0 .5em}h3{font-size:.95rem;margin:1em 0 .3em}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+label{display:block;font-size:.85rem;color:var(--mut)}
+input,select,textarea,button{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:100%}
+button{cursor:pointer;width:auto;background:var(--ac);color:#fff;border:0;padding:7px 12px}
+button.alt{background:var(--bg);color:var(--fg);border:1px solid var(--bd)}
+.mut{color:var(--mut);font-size:.9rem}.err{color:#c0392b;font-weight:600}
+.sc{overflow:auto;max-height:260px}
+table{border-collapse:collapse;width:100%;font-size:.82rem}th,td{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:right;white-space:nowrap}th{position:sticky;top:0;background:var(--card)}
+.box{border:2px solid var(--ac);border-radius:8px;padding:8px 12px;margin:8px 0}
+.warn{background:var(--warn);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:.9rem}
+#chat{height:260px;overflow-y:auto;border:1px solid var(--bd);border-radius:8px;padding:8px;background:var(--bg)}
+.m{margin:5px 0;padding:6px 10px;border-radius:10px;max-width:88%}.u{background:var(--ac);color:#fff;margin-left:auto}.b{background:var(--card);border:1px solid var(--bd)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.row input{flex:1;min-width:140px}
+svg{width:100%;height:auto;display:block}
+</style></head><body><main>
+<h1>Resonancia: musicoterapia asistida con EDO, IA y ciencia de datos</h1>
+<p class="mut">Desafío individual · Métodos Numéricos · Autor: Mario Fabricio Murillo Peñaranda. Los parámetros son <b>hipotéticos</b> y las simulaciones <b>no son predicciones comprobadas</b> ni un tratamiento.</p>
+
+<section class="card"><h2>a) Problema y contexto</h2>
+<p><b>Desafío:</b> «Resonancia: ¿cuántos minutos de escucha musical guiada necesita un estudiante para bajar su malestar emocional?»<br>
+<b>Comunidad beneficiaria:</b> estudiantes universitarios con estrés, ansiedad o ánimo bajo durante la vida académica.<br>
+<b>Problema y relevancia:</b> la carga de exámenes, tareas y plazos eleva el malestar y afecta el descanso y el rendimiento. La escucha musical guiada es una técnica de autocuidado de bajo costo que se puede practicar en minutos, y la musicoterapia es una disciplina reconocida; este proyecto solo modela una sesión de apoyo, no la reemplaza.<br>
+<b>Pregunta y meta cuantificable:</b> si el malestar autopercibido inicial es y₀ (0–100), ¿en cuántos minutos baja hasta la meta (umbral) de 40 puntos, con y sin música?</p>
+<div class="warn">La música puede ayudar a relajarte, pero <b>no reemplaza</b> la atención de psicología o psiquiatría. Si el malestar es intenso o dura semanas, busca ayuda profesional o el servicio de bienestar de tu universidad.</div></section>
+
+<section class="card"><h2>b) Modelo matemático</h2>
+<div class="box">dy/dt = −k·(y − y<sub>b</sub>), &nbsp; y(0) = y₀</div>
+<table><tr><th style="text-align:left">Símbolo</th><th style="text-align:left">Significado</th><th style="text-align:left">Unidad</th></tr>
+<tr><td style="text-align:left">y(t) (dependiente)</td><td style="text-align:left">malestar autopercibido (autoevaluación)</td><td style="text-align:left">puntos, escala 0–100</td></tr>
+<tr><td style="text-align:left">t (independiente)</td><td style="text-align:left">tiempo transcurrido de la sesión</td><td style="text-align:left">minutos</td></tr>
+<tr><td style="text-align:left">y₀</td><td style="text-align:left">malestar inicial, y(0)</td><td style="text-align:left">puntos</td></tr>
+<tr><td style="text-align:left">y<sub>b</sub></td><td style="text-align:left">nivel de calma alcanzable</td><td style="text-align:left">puntos</td></tr>
+<tr><td style="text-align:left">k</td><td style="text-align:left">tasa de relajación (aumenta con la música guiada)</td><td style="text-align:left">1/min</td></tr></table>
+<p><b>Justificación:</b> el malestar baja más rápido cuanto más lejos está del nivel de calma, igual que la temperatura se acerca a la del ambiente (ley de enfriamiento de Newton). <b>Supuestos:</b> k y y<sub>b</sub> constantes durante la sesión; sin nuevos estresores; medición por autoevaluación; valores de k por modo de música son supuestos hipotéticos. <b>Intervalo:</b> t ∈ [0, T] minutos.</p></section>
+
+<section class="card"><h2>Simulador (parámetros, d) y e))</h2>
+<div class="grid">
+<div><label>Modo de música (ajusta k)</label><select id="mode"></select></div>
+<div><label>y₀: malestar inicial (puntos, 0–100)</label><input id="y0" type="number" value="80" step="1"></div>
+<div><label>y<sub>b</sub>: nivel de calma (puntos)</label><input id="yb" type="number" value="20" step="1"></div>
+<div><label>k: relajación (1/min)</label><input id="k" type="number" value="0.05" step="0.005"></div>
+<div><label>h: paso (min)</label><input id="h" type="number" value="10" step="1"></div>
+<div><label>T: duración (min)</label><input id="T" type="number" value="60" step="5"></div>
+<div><label>Meta: umbral (puntos)</label><input id="U" type="number" value="40" step="1"></div>
+</div>
+<div class="row"><button id="run">Simular</button><span id="err" class="err"></span></div>
+
+<h3>c) Solución analítica y verificación</h3><div id="res"></div>
+<h3>Gráfica: analítica, Heun y RK4</h3>
+<svg id="plot" viewBox="0 0 640 250" role="img" aria-label="Malestar en el tiempo"></svg>
+<p class="mut">Negro: analítica · naranja discontinua: Heun · verde con puntos: RK4 · roja: meta.</p>
+<h3>Gráfica de errores (log₁₀ del error absoluto, paso h)</h3>
+<svg id="eplot" viewBox="0 0 640 250" role="img" aria-label="Errores de Heun y RK4"></svg>
+<h3>Comparación de dos tamaños de paso (h y h/2)</h3><div id="cmp" class="sc"></div>
+<h3>Tabla por pasos (h)</h3><div id="tab" class="sc"></div>
+<h3>f) Interpretación y conclusiones</h3><div id="interp"></div></section>
+
+<section class="card"><h2>Ciencia de datos: calibrar k con registros</h2>
+<p class="mut">Cada línea es «minuto, malestar». Con la linealización ln(y − y<sub>b</sub>) = ln(y₀ − y<sub>b</sub>) − k·t se estima k por regresión. Los datos de ejemplo son <b>hipotéticos</b>; el chatbot también agrega tus registros aquí.</p>
+<textarea id="caldata" rows="6">0,80
+5,67
+10,58
+15,51
+20,45
+30,37
+45,29</textarea>
+<div class="row"><button id="cal">Estimar k</button><button class="alt" id="use" disabled>Usar k estimado</button></div><p id="calres"></p></section>
+
+<section class="card"><h2>Chatbot Resonancia (modo ayuda con música)</h2>
+<p class="mut">IA ligera en el navegador: clasifica tu mensaje por similitud de texto (NLP) y recomienda música clásica (obras de dominio público, simplificadas y sintetizadas en el navegador); no usa servicios externos. No es un profesional de salud. Escribe tu nivel así: «estoy en 55» o «a los 10 min estoy en 55».</p>
+<div id="chat"></div><div class="row" id="quick"></div>
+<div class="row"><input id="msg" placeholder="Ej.: tengo ansiedad por un examen"><button id="send">Enviar</button></div>
+<div class="row"><label style="width:auto">Volumen</label><input id="vol" type="range" min="0" max="0.4" step="0.01" value="0.15" style="max-width:170px"><button class="alt" id="stop">Detener música</button><span id="now" class="mut"></span></div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const f=(x,d=3)=>Number.isFinite(x)?x.toFixed(d):"—";
+const MODES={none:{n:"Sin música",k:0.02},sat:{n:"Satie · Gymnopédie n.º 1 (acompañamiento)",k:0.06},luna:{n:"Beethoven · Claro de luna (adaptado)",k:0.055},pach:{n:"Pachelbel · Canon en Re (adaptado)",k:0.05},bach:{n:"Bach · Preludio en Do mayor (adaptado)",k:0.045}};
+for(const q in MODES){const o=document.createElement("option");o.value=q;o.textContent=MODES[q].n+" (k = "+MODES[q].k+")";$("mode").appendChild(o)}
+$("mode").value="pach";
+let P={},kfit=null;
+function read(){P={y0:+$("y0").value,yb:+$("yb").value,k:+$("k").value,h:+$("h").value,T:+$("T").value,U:+$("U").value};const e=[];
+ if(!(P.y0>0&&P.y0<=100))e.push("y₀ debe estar entre 0 y 100.");
+ if(!(P.yb>=0&&P.yb<100))e.push("y_b debe estar entre 0 y 100.");
+ if(P.yb>=P.y0)e.push("y_b debe ser menor que y₀.");
+ if(!(P.k>0&&P.k<=5))e.push("k debe estar entre 0 y 5.");
+ if(!(P.h>0))e.push("h debe ser > 0.");
+ if(!(P.T>0))e.push("T debe ser > 0.");
+ if(P.h>P.T)e.push("h no puede superar T.");
+ else if(P.T/P.h>1000)e.push("Máximo 1000 pasos.");
+ else if(Math.abs(P.T/P.h-Math.round(P.T/P.h))>1e-9)e.push("T debe ser múltiplo de h.");
+ if(!(P.U>P.yb&&P.U<P.y0))e.push("La meta debe estar entre y_b y y₀.");
+ $("err").textContent=e.join(" ");return e.length===0}
+const ex=t=>P.yb+(P.y0-P.yb)*Math.exp(-P.k*t),F=(t,y)=>-P.k*(y-P.yb);
+function sim(h){const n=Math.round(P.T/h);let yh=P.y0,yr=P.y0;const r=[[0,P.y0,P.y0,P.y0]];
+ for(let i=1;i<=n;i++){const t=(i-1)*h,p=yh+h*F(t,yh);yh=yh+h/2*(F(t,yh)+F(t+h,p));
+  const k1=F(t,yr),k2=F(t+h/2,yr+h/2*k1),k3=F(t+h/2,yr+h/2*k2),k4=F(t+h,yr+h*k3);yr+=h/6*(k1+2*k2+2*k3+k4);r.push([i*h,ex(i*h),yh,yr])}return r}
+const rel=(e,x)=>x!==0?Math.abs(e)/Math.abs(x)*100:NaN;
+const tStar=k=>Math.log((P.y0-P.yb)/(P.U-P.yb))/k;
+function plot(id,curves,o){const W=640,H=250,L=46,B=24,Tp=8,Rr=10,X=t=>L+(t-o.x0)/(o.x1-o.x0)*(W-L-Rr),Y=v=>Tp+(H-B-Tp)*(1-(v-o.y0)/(o.y1-o.y0));let s="";
+ for(let i=0;i<=4;i++){const v=o.y0+(o.y1-o.y0)*i/4;s+=`<line x1="${L}" x2="${W-Rr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--bd)"/><text x="3" y="${Y(v)+4}" font-size="11" style="fill:var(--mut)">${o.fmt(v)}</text>`}
+ for(let i=0;i<=4;i++){const t=o.x0+(o.x1-o.x0)*i/4;s+=`<text x="${X(t)-8}" y="${H-6}" font-size="11" style="fill:var(--mut)">${f(t,0)} min</text>`}
+ (o.hl||[]).forEach(v=>s+=`<line x1="${L}" x2="${W-Rr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#c0392b" stroke-width="1.5"/>`);
+ curves.forEach(c=>{s+=`<polyline fill="none" style="stroke:${c.c}" stroke-width="2" ${c.d?`stroke-dasharray="${c.d}"`:""} points="${c.p.map(q=>X(q[0])+","+Y(q[1])).join(" ")}"/>`;
+  if(c.dots)s+=c.p.map(q=>`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="2.5" style="fill:${c.c}"/>`).join("")});
+ $(id).innerHTML=s}
+function run(){if(!read())return;const R=sim(P.h),R2=sim(P.h/2),last=R[R.length-1],e=(r,c)=>Math.abs(r[1]-r[c]);
+ const ts=tStar(P.k),t0=tStar(MODES.none.k);
+ $("res").innerHTML=`<div class="box">y(t) = ${f(P.yb,2)} + ${f(P.y0-P.yb,2)}·e<sup>−${P.k}·t</sup> &nbsp;|&nbsp; <b>t* = ln((y₀−y_b)/(U−y_b))/k = ${f(ts,2)} min</b></div>
+<p class="mut">Derivación: dy/(y−y_b) = −k dt → ln|y−y_b| = −kt + C → y = y_b + C₁e<sup>−kt</sup>; con y(0)=y₀, C₁ = y₀−y_b.<br>
+Verificación: y(0) = y_b + (y₀−y_b)·1 = y₀ ✓. y′(t) = −k(y₀−y_b)e<sup>−kt</sup> y −k(y−y_b) = −k(y₀−y_b)e<sup>−kt</sup>, luego y′ = −k(y−y_b) ✓. Comprobación numérica en t = ${P.T}: y′ = ${f(-P.k*(P.y0-P.yb)*Math.exp(-P.k*P.T),6)} y −k(y−y_b) = ${f(F(P.T,ex(P.T)),6)}.</p>`;
+ const X1=[0,P.T],pts=c=>R.map(r=>[r[0],r[c]]);
+ plot("plot",[{p:Array.from({length:201},(_,i)=>[P.T*i/200,ex(P.T*i/200)]),c:"var(--fg)"},{p:pts(2),c:"var(--c2)",d:"6 4"},{p:pts(3),c:"var(--c3)",dots:1}],{x0:0,x1:P.T,y0:0,y1:100,hl:[P.U],fmt:v=>f(v,0)});
+ const lg=(r,c)=>r.slice(1).map(q=>[q[0],Math.log10(Math.max(e(q,c),1e-16))]),ls=lg(R,2).concat(lg(R,3)).map(q=>q[1]);
+ plot("eplot",[{p:lg(R,2),c:"var(--c2)",d:"6 4"},{p:lg(R,3),c:"var(--c3)",dots:1}],{x0:0,x1:P.T,y0:Math.floor(Math.min(...ls)),y1:Math.ceil(Math.max(...ls))+0.01,fmt:v=>"1e"+f(v,0)});
+ const row=(r)=>{const L2=r[r.length-1],mh=Math.max(...r.map(q=>e(q,2))),mr=Math.max(...r.map(q=>e(q,3)));return{L2,mh,mr}},a=row(R),b=row(R2);
+ $("cmp").innerHTML=`<table><tr><th>h (min)</th><th>Error abs. Heun en T</th><th>Error rel. % Heun</th><th>Error abs. RK4 en T</th><th>Error rel. % RK4</th><th>Máx. abs. Heun</th><th>Máx. abs. RK4</th></tr>`+[[P.h,a],[P.h/2,b]].map(([h,x])=>`<tr><td>${f(h,2)}</td><td>${e(x.L2,2).toExponential(3)}</td><td>${f(rel(x.L2[1]-x.L2[2],x.L2[1]),5)}</td><td>${e(x.L2,3).toExponential(3)}</td><td>${f(rel(x.L2[1]-x.L2[3],x.L2[1]),6)}</td><td>${x.mh.toExponential(3)}</td><td>${x.mr.toExponential(3)}</td></tr>`).join("")+"</table>";
+ $("tab").innerHTML="<table><tr><th>t (min)</th><th>Analítica</th><th>Heun</th><th>RK4</th><th>Err. abs. Heun</th><th>Err. rel. % Heun</th><th>Err. abs. RK4</th><th>Err. rel. % RK4</th></tr>"+R.map(r=>`<tr><td>${f(r[0],2)}</td><td>${f(r[1],4)}</td><td>${f(r[2],4)}</td><td>${f(r[3],4)}</td><td>${e(r,2).toExponential(2)}</td><td>${f(rel(r[1]-r[2],r[1]),5)}</td><td>${e(r,3).toExponential(2)}</td><td>${f(rel(r[1]-r[3],r[1]),6)}</td></tr>`).join("")+"</table>";
+ const rH=a.mh/b.mh,rR=a.mr/b.mr,best=a.mr<a.mh?"RK4":"Heun",first=c=>{const q=R.find(r=>r[c]<=P.U);return q?q[0]:null};
+ $("interp").innerHTML=`<p><b>Respuesta a la pregunta:</b> con k = ${P.k} 1/min, un estudiante que parte de ${P.y0} puntos baja a la meta de ${P.U} puntos en <b>${f(ts,1)} minutos</b> (solución exacta). Sin música (k = ${MODES.none.k}) tardaría ${f(t0,1)} minutos. En los nodos de paso h = ${P.h} min, Heun llega a la meta en ${first(2)??"—"} min y RK4 en ${first(3)??"—"} min.</p>
+<p><b>En lenguaje sencillo:</b> el malestar baja rápido al principio y luego más despacio, acercándose a la calma. Si el modelo fuera correcto, una sesión guiada de unos ${Math.ceil(ts)} minutos bastaría para llegar a la meta. Esto sirve para planificar pausas de estudio, no para diagnosticar ni tratar.</p>
+<p><b>Método con menor error:</b> <b>${best}</b> (error máximo ${Math.min(a.mh,a.mr).toExponential(2)} vs ${Math.max(a.mh,a.mr).toExponential(2)} con h = ${P.h}). Al pasar de h a h/2, el error máximo de Heun se divide ≈ ${f(rH,1)} veces (orden 2 ⇒ ≈ 4) y el de RK4 ≈ ${f(rR,1)} veces (orden 4 ⇒ ≈ 16).</p>
+<p><b>Limitaciones:</b> k, y_b y los efectos de cada música son hipotéticos; el modelo supone un solo nivel de calma y k constante; el malestar es autopercibido y varía entre personas; no hay datos clínicos que respalden estos valores.</p>`}
+function calib(){if(!read())return;const rows=$("caldata").value.split(/\n/).map(l=>l.trim().split(/[,;\s]+/).map(Number)).filter(r=>r.length>=2&&r.every(Number.isFinite)&&r[0]>=0&&r[1]>P.yb);
+ if(rows.length<3){$("calres").textContent="Se necesitan al menos 3 registros válidos con malestar mayor que y_b.";return}
+ const n=rows.length,mt=rows.reduce((s,r)=>s+r[0],0)/n,z=rows.map(r=>Math.log(r[1]-P.yb)),mz=z.reduce((s,v)=>s+v,0)/n;
+ let sxx=0,sxy=0;rows.forEach((r,i)=>{sxx+=(r[0]-mt)**2;sxy+=(r[0]-mt)*(z[i]-mz)});
+ if(sxx===0||sxy>=0){$("calres").textContent="Los datos no muestran descenso; no se puede estimar k.";return}
+ const s=sxy/sxx,c=mz-s*mt;let ssr=0,sst=0,se=0;rows.forEach((r,i)=>{ssr+=(z[i]-(c+s*r[0]))**2;sst+=(z[i]-mz)**2;se+=(r[1]-(P.yb+Math.exp(c+s*r[0])))**2});
+ kfit=-s;$("use").disabled=false;
+ $("calres").innerHTML=`<b>k̂ = ${f(kfit,4)} 1/min</b> · y₀ ajustado = ${f(P.yb+Math.exp(c),1)} · R² = ${f(1-ssr/sst,4)} · RMSE = ${f(Math.sqrt(se/n),2)} puntos · n = ${n}`}
+$("cal").onclick=calib;$("use").onclick=()=>{$("k").value=f(kfit,4);run()};
+
+/* ---------- Música clásica (Web Audio, sin archivos externos) ---------- */
+let ctx,master,timer=null,step=0,t0s=null;
+const hz=m=>440*Math.pow(2,(m-69)/12);
+function ensure(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.connect(ctx.destination)}master.gain.value=+$("vol").value;if(ctx.state==="suspended")ctx.resume()}
+function note(m,t,d,g){const fr=hz(m);[[fr,"triangle",1],[fr*2,"sine",0.25]].forEach(([q,ty,w])=>{const o=ctx.createOscillator(),v=ctx.createGain();o.type=ty;o.frequency.value=q;v.gain.setValueAtTime(0.0001,t);v.gain.linearRampToValueAtTime(g*w,t+0.015);v.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(v);v.connect(master);o.start(t);o.stop(t+d+0.05)})}
+const BACH=[[48,52,55,60,64],[48,50,57,62,65],[47,50,55,62,65],[48,52,55,60,64],[48,52,57,64,69],[48,50,54,57,62],[47,50,55,62,67],[47,48,52,55,60],[45,48,52,55,60],[38,45,50,54,60],[43,47,50,55,59]];
+const LUNA=[{b:37,n:[56,61,64]},{b:35,n:[56,61,64]},{b:33,n:[57,61,64]},{b:30,n:[57,61,66]},{b:32,n:[56,60,63]},{b:37,n:[56,61,64]}];
+const CAN={bass:[50,45,47,42,43,38,43,45],th:[78,76,74,73,71,69,71,73],ch:[[62,66,69],[61,64,69],[59,62,66],[61,66,69],[62,67,71],[62,66,69],[62,67,71],[61,64,69]]};
+const MS={bach:220,sat:900,luna:190,pach:1300};
+const TICK={
+bach:t=>{const c=BACH[Math.floor(step/8)%BACH.length],i=[0,1,2,3,4,2,3,4][step%8];note(c[i],t,1.2,0.22);if(step%8===0)note(c[0]-12,t,2.5,0.18)},
+sat:t=>{const bar=Math.floor(step/3)%2;if(step%3===0)note([43,38][bar],t,2.6,0.25);else[[59,62,66],[57,61,66]][bar].forEach(m=>note(m,t,1.6,0.14))},
+luna:t=>{const L=LUNA[Math.floor(step/12)%6];if(step%12===0){note(L.b,t,2.6,0.2);note(L.b+12,t,2.6,0.12)}note(L.n[step%3],t,0.9,0.13)},
+pach:t=>{const i=step%8;note(CAN.bass[i],t,2,0.2);CAN.ch[i].forEach(m=>note(m,t,1.8,0.08));note(CAN.th[i],t,1.6,0.2);if(step>=8)note(CAN.th[(step+6)%8]-12,t,1.6,0.1)}};
+function stopMusic(){if(timer){clearInterval(timer);timer=null}t0s=null;$("now").textContent=""}
+function play(q){stopMusic();if(q==="none")return;ensure();step=0;t0s=Date.now();const g=()=>{TICK[q](ctx.currentTime+0.05);step++};g();timer=setInterval(g,MS[q]);$("now").textContent="Reproduciendo: "+MODES[q].n}
+function setMode(q){$("mode").value=q;$("k").value=MODES[q].k;play(q);run()}
+$("mode").onchange=()=>setMode($("mode").value);
+
+/* ---------- Chatbot: NLP por similitud coseno + reglas de seguridad ---------- */
+const chat=$("chat");let awaiting=false;
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const tok=s=>norm(s).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2).map(w=>w.slice(0,5));
+const vec=s=>{const m={};tok(s).forEach(w=>m[w]=(m[w]||0)+1);return m};
+const cos=(a,b)=>{let d=0,na=0,nb=0;for(const k in a){na+=a[k]**2;if(b[k])d+=a[k]*b[k]}for(const k in b)nb+=b[k]**2;return d/(Math.sqrt(na*nb)||1)};
+const INT={ansiedad:["tengo ansiedad","me siento ansioso nervioso","ansioso angustia panico","preocupado nervios corazon acelerado"],
+estres:["estoy estresado","mucho estres presion","agobiado tareas sobrecargado","no doy mas con la universidad"],
+animo:["me siento triste","estoy deprimido sin animo","no tengo ganas de nada","me siento vacio solo desanimado"],
+sueno:["no puedo dormir","tengo insomnio","estoy cansado agotado","quiero descansar relajarme"],
+foco:["necesito concentrarme","quiero estudiar enfocarme","musica para estudiar leer"],
+examen:["tengo examen manana","parcial examen evaluacion","defensa exposicion presentacion"],
+datos:["calibrar con datos","ajustar k regresion","ciencia de datos registro"],
+parar:["detener musica","parar silencio","apagar stop"],
+bach:["pon bach preludio","musica barroca bach"],pach:["pon pachelbel canon","canon en re"],luna:["pon beethoven claro de luna"],sat:["pon satie gymnopedie"],
+clasica:["pon musica clasica","quiero musica clasica","algo de clasica"],
+saludo:["hola buenas","hey que tal","buenos dias","ayuda que puedes hacer"]};
+const VEC={};for(const k in INT)VEC[k]=INT[k].map(vec);
+function intent(s){const v=vec(s);let best=null,bs=0;for(const k in VEC)VEC[k].forEach(x=>{const c=cos(v,x);if(c>bs){bs=c;best=k}});return bs>=0.3?best:null}
+const ASK=" Del 0 al 100, ¿qué tan alto está tu malestar ahora? Escribe por ejemplo «estoy en 70».";
+function sess(q,txt){setMode(q);awaiting=true;return txt+ASK}
+const H={
+ansiedad:()=>sess("sat","Entiendo, la ansiedad se siente muy incómoda. Pongo <b>Gymnopédie n.º 1 de Satie</b>, lenta y suave. Mientras suena, respira inhalando 4 segundos y exhalando 6, unos 5 minutos. Primero acompaña lo que sientes y luego baja el ritmo, como en la musicoterapia receptiva. Si la ansiedad es frecuente o intensa, consulta con un profesional."),
+estres:()=>sess("bach","El estrés académico pesa. Pongo el <b>Preludio en Do mayor de Bach</b>: fluye sin sobresaltos. Prueba bloques de 25 min de estudio con pausas de 5 y escribe en papel lo más urgente."),
+animo:()=>sess("pach","Gracias por contarlo. Pongo el <b>Canon en Re de Pachelbel</b>, cálido y consolador; la música puede acompañarte y ayudarte a regular el ánimo, pero no trata la depresión. Un paso pequeño ayuda: agua, luz natural o caminar 10 min. Si llevas semanas así, busca a psicología o bienestar universitario y cuéntaselo a alguien de confianza."),
+sueno:()=>sess("luna","Pongo el <b>Claro de luna de Beethoven</b> a volumen bajo. Evita pantallas brillantes y repasar pendientes en la cama. Si el insomnio persiste, consulta a un profesional de salud."),
+foco:()=>(setMode("bach"),"Pongo el <b>Preludio en Do mayor de Bach</b>: arpegios constantes, sin letra. Trabaja 25 min y descansa 5. Registra cómo te sientes con «estoy en 40»."),
+examen:()=>sess("bach","Para el examen: practica con preguntas, duerme lo suficiente y descansa cada 25 min. Pongo el <b>Preludio en Do mayor de Bach</b>."),
+bach:()=>(setMode("bach"),"Pongo el <b>Preludio en Do mayor de Bach</b>."),
+pach:()=>(setMode("pach"),"Pongo el <b>Canon en Re de Pachelbel</b>."),
+luna:()=>(setMode("luna"),"Pongo el <b>Claro de luna de Beethoven</b>."),
+sat:()=>(setMode("sat"),"Pongo la <b>Gymnopédie n.º 1 de Satie</b>."),
+clasica:()=>{const q=["bach","pach","luna","sat"][Math.floor(Math.random()*4)];return H[q]()},
+parar:()=>(setMode("none"),"Música detenida; el modelo vuelve a k = "+MODES.none.k+"."),
+datos:()=>"Cada registro «estoy en 55» (o «a los 10 min estoy en 55») se agrega a la tabla de datos y el panel de ciencia de datos estima k por regresión.",
+saludo:()=>"¡Hola! Soy Resonancia. Puedo poner música clásica de apoyo (<b>Bach</b>, <b>Satie</b>, <b>Beethoven</b>, <b>Pachelbel</b>) y acompañarte si tienes estrés, ansiedad o ánimo bajo. No soy un profesional de salud."+ASK};
+function crisis(){stopMusic();$("mode").value="none";return "Lamento que estés pasando por esto; tu seguridad importa más que cualquier simulación. Si estás en peligro ahora, llama a emergencias (911) o ve a urgencias. Puedes hablar ya con profesionales, gratis y confidencial: <b>Familia Segura 800 11 30 40</b> o WhatsApp <b>777 97 667</b>. Si puedes, avisa a alguien de confianza para que esté contigo. ¿Hay alguien cerca que pueda acompañarte ahora?"}
+function level(raw){const m=raw.match(/\d+(?:[.,]\d+)?/g);if(!m)return null;const tm=raw.match(/(\d+(?:[.,]\d+)?)\s*min/),nums=m.map(x=>+x.replace(",","."));let t=tm?+tm[1].replace(",","."):null,v=nums.filter(x=>!tm||x!==t).pop();
+ if(!(v>=0&&v<=100))return null;if(t===null)t=t0s?(Date.now()-t0s)/60000:0;return{t:Math.round(t*10)/10,v}}
+function checkin(r){const a=$("caldata");a.value=(a.value.trim()+"\n"+r.t+","+r.v).trim();let s="Registré t = "+r.t+" min, malestar "+r.v+".";
+ if(r.t===0&&r.v>+$("yb").value){$("y0").value=r.v;run();if(read())s+=" Ajusté y₀ = "+r.v+": con k = "+P.k+" llegarías a "+P.U+" puntos en ≈ "+f(tStar(P.k),1)+" min (hipotético)."}
+ awaiting=false;return s+" Puedes seguir registrando cada pocos minutos; el panel de datos estima k."}
+function bot(raw){const s=norm(raw);
+ if(/(suicid|quitarme la vida|quiero morir|no quiero vivir|matarme|hacerme dano|autolesi|cortarme|acabar con todo|desaparecer para siempre)/.test(s))return crisis();
+ const r=level(raw);if(r&&(awaiting||/(estoy en|nivel|malestar|estres de|ansiedad de)/.test(s)||/^\s*\d+([.,]\d+)?\s*$/.test(s)))return checkin(r);
+ const i=intent(raw);return i?H[i]():"No lo entendí del todo. Puedes decirme cómo te sientes («tengo ansiedad», «estoy estresado», «me siento triste»), pedir «Bach», «Satie», «Beethoven», «Pachelbel», «música clásica» o «detener»."}
+function say(t,w){const d=document.createElement("div");d.className="m "+w;d.innerHTML=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+function send(txt){txt=(txt||$("msg").value).trim();if(!txt)return;say(txt.replace(/</g,"&lt;"),"u");$("msg").value="";say(bot(txt),"b")}
+["Tengo ansiedad","Estoy estresado","Me siento triste","No puedo dormir","Tengo examen","Música clásica"].forEach(q=>{const b=document.createElement("button");b.className="alt";b.textContent=q;b.onclick=()=>send(q);$("quick").appendChild(b)});
+$("send").onclick=()=>send();$("msg").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
+$("stop").onclick=()=>setMode("none");$("vol").oninput=()=>{if(master)master.gain.value=+$("vol").value};
+$("run").onclick=run;["y0","yb","k","h","T","U"].forEach(i=>$(i).addEventListener("change",run));
+say(H.saludo(),"b");run();calib();
+</script></body></html>
